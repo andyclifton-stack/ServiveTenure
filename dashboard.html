@@ -3,7 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#000000">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-title" content="AC Dashboard">
     <title>AC Dashboard v15</title>
+    <link rel="manifest" href="manifest.webmanifest">
+    <link rel="icon" href="icon.svg" type="image/svg+xml">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
     <style>
         /* --- 1. Variables & Reset --- */
@@ -359,6 +364,26 @@
 
     <script>
         (function generateFavicon() { const c=document.createElement('canvas');c.width=32;c.height=32;const ctx=c.getContext('2d');ctx.fillStyle='#0f172a';ctx.fillRect(0,0,32,32);ctx.fillStyle='#10b981';ctx.beginPath();ctx.arc(16,16,8,0,Math.PI*2);ctx.fill();const l=document.createElement('link');l.type='image/x-icon';l.rel='shortcut icon';l.href=c.toDataURL();document.head.appendChild(l);})();
+
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('./sw.js').catch(() => {});
+            });
+        }
+
+        let wakeLock = null;
+        async function requestWakeLock() {
+            if (!('wakeLock' in navigator) || document.hidden || wakeLock) return;
+            try {
+                wakeLock = await navigator.wakeLock.request('screen');
+                wakeLock.addEventListener('release', () => { wakeLock = null; });
+            } catch {
+                wakeLock = null;
+            }
+        }
+        document.addEventListener('pointerdown', requestWakeLock, { once: true });
+        document.addEventListener('visibilitychange', () => { if (!document.hidden) requestWakeLock(); });
+        window.addEventListener('load', requestWakeLock);
         
         const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
         let isMuted = false;
@@ -462,7 +487,59 @@
         let cVal = "";
         function cIn(v) { cVal += v; document.getElementById('calc-display').textContent = cVal; playSound('click'); }
         function cClear() { cVal = ""; document.getElementById('calc-display').textContent = "0"; playSound('click'); }
-        function cEval() { try { cVal = eval(cVal).toString(); document.getElementById('calc-display').textContent = cVal; } catch { document.getElementById('calc-display').textContent = "Error"; cVal=""; } playSound('click'); }
+        function parseCalcExpression(input) {
+            const src = input.replace(/\s+/g, '');
+            let pos = 0;
+
+            function parseNumber() {
+                const start = pos;
+                while (pos < src.length && /[0-9.]/.test(src[pos])) pos++;
+                const token = src.slice(start, pos);
+                if (!/^\d+(\.\d+)?$|^\.\d+$/.test(token)) throw new Error('Invalid number');
+                return Number(token);
+            }
+
+            function parseFactor() {
+                if (src[pos] === '+') { pos++; return parseFactor(); }
+                if (src[pos] === '-') { pos++; return -parseFactor(); }
+                return parseNumber();
+            }
+
+            function parseTerm() {
+                let value = parseFactor();
+                while (src[pos] === '*' || src[pos] === '/') {
+                    const op = src[pos++];
+                    const next = parseFactor();
+                    value = op === '*' ? value * next : value / next;
+                }
+                return value;
+            }
+
+            function parseExpression() {
+                let value = parseTerm();
+                while (src[pos] === '+' || src[pos] === '-') {
+                    const op = src[pos++];
+                    const next = parseTerm();
+                    value = op === '+' ? value + next : value - next;
+                }
+                return value;
+            }
+
+            const result = parseExpression();
+            if (pos !== src.length || !Number.isFinite(result)) throw new Error('Invalid expression');
+            return result;
+        }
+
+        function cEval() {
+            try {
+                cVal = parseCalcExpression(cVal).toString();
+                document.getElementById('calc-display').textContent = cVal;
+            } catch {
+                document.getElementById('calc-display').textContent = "Error";
+                cVal="";
+            }
+            playSound('click');
+        }
 
         let swInt, swSec = 0;
         function swStart() { if(!swInt) swInt = setInterval(() => { swSec++; document.getElementById('sw-display').textContent = new Date(swSec * 1000).toISOString().substr(11, 8); }, 1000); }
