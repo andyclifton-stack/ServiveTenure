@@ -1,10 +1,12 @@
-const CACHE_NAME = 'ac-dashboard-v16';
+const CACHE_NAME = 'ac-dashboard-v17';
 const CORE_ASSETS = [
   './',
   './index.html',
   './dashboard.html',
   './manifest.webmanifest',
-  './icon.svg'
+  './icon.svg',
+  './icon-192.png',
+  './icon-512.png'
 ];
 
 self.addEventListener('install', event => {
