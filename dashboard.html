@@ -3,23 +3,68 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <meta name="theme-color" content="#000000">
+    <meta name="theme-color" id="theme-color-meta" content="#000000">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-title" content="AC Dashboard">
     <title>AC Dashboard v15</title>
     <link rel="manifest" href="manifest.webmanifest">
     <link rel="icon" href="icon.svg" type="image/svg+xml">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <script>
+        try {
+            const savedTheme = localStorage.getItem('ac_dashboard_theme');
+            const preferredTheme = window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
+            document.documentElement.dataset.theme = savedTheme || preferredTheme;
+        } catch {
+            document.documentElement.dataset.theme = 'dark';
+        }
+    </script>
     <style>
         /* --- 1. Variables & Reset --- */
         :root {
+            color-scheme: dark;
             --bg-color: #000000;
             --text-primary: #ffffff;
-            --text-dim: #64748b;
+            --text-dim: #8b98a9;
             --accent: #10b981; /* Tenure Green */
+            --accent-strong: #34d399;
+            --accent-contrast: #031712;
             --glass: rgba(255, 255, 255, 0.1);
             --glass-panel: rgba(15, 23, 42, 0.95);
             --border: rgba(255, 255, 255, 0.1);
+            --shadow: rgba(0, 0, 0, 0.45);
+            --danger: #ef4444;
+            --button-bg: #262626;
+            --button-muted: #334155;
+            --canvas-bg: rgba(30, 41, 59, 0.4);
+            --canvas-opaque-bg: #0f172a;
+            --modal-bg: #111111;
+            --modal-overlay: rgba(0,0,0,0.85);
+            --trigger-bottom: linear-gradient(to top, rgba(0,0,0,0.8), transparent);
+            --trigger-top: linear-gradient(to bottom, rgba(0,0,0,0.8), transparent);
+        }
+
+        html[data-theme="light"] {
+            color-scheme: light;
+            --bg-color: #f3f5f7;
+            --text-primary: #111827;
+            --text-dim: #4b5563;
+            --accent: #0f766e;
+            --accent-strong: #0f766e;
+            --accent-contrast: #ffffff;
+            --glass: rgba(17, 24, 39, 0.08);
+            --glass-panel: rgba(248, 250, 252, 0.97);
+            --border: rgba(15, 23, 42, 0.16);
+            --shadow: rgba(15, 23, 42, 0.16);
+            --danger: #b91c1c;
+            --button-bg: #e5e7eb;
+            --button-muted: #d1d5db;
+            --canvas-bg: rgba(226, 232, 240, 0.75);
+            --canvas-opaque-bg: #ffffff;
+            --modal-bg: #ffffff;
+            --modal-overlay: rgba(15, 23, 42, 0.38);
+            --trigger-bottom: linear-gradient(to top, rgba(243,245,247,0.88), transparent);
+            --trigger-top: linear-gradient(to bottom, rgba(243,245,247,0.88), transparent);
         }
 
         * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; }
@@ -112,8 +157,8 @@
             position: absolute; width: 100%; height: 60px; display: flex; justify-content: center; align-items: center; cursor: pointer; z-index: 20;
             transition: opacity 0.3s;
         }
-        .trigger-bar { bottom: 0; background: linear-gradient(to top, rgba(0,0,0,0.8), transparent); }
-        .trigger-bar-top { top: 0; background: linear-gradient(to bottom, rgba(0,0,0,0.8), transparent); }
+        .trigger-bar { bottom: 0; background: var(--trigger-bottom); }
+        .trigger-bar-top { top: 0; background: var(--trigger-top); }
         
         .chevron-up, .chevron-down { width: 40px; height: 5px; background: var(--text-dim); border-radius: 10px; }
         
@@ -121,22 +166,25 @@
 
         /* --- 7. Tenure Styles --- */
         .tenure-header { text-align: center; margin-bottom: 2rem; }
-        .status-badge { display: inline-flex; align-items: center; background: rgba(16, 185, 129, 0.2); border: 1px solid rgba(16, 185, 129, 0.4); color: #34d399; padding: 0.4rem 0.8rem; border-radius: 99px; font-size: 0.7rem; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 1rem; }
-        .status-dot { width: 8px; height: 8px; background-color: #34d399; border-radius: 50%; margin-right: 8px; box-shadow: 0 0 5px #34d399; animation: pulse-green 2s infinite; }
+        .status-badge { display: inline-flex; align-items: center; background: color-mix(in srgb, var(--accent) 18%, transparent); border: 1px solid color-mix(in srgb, var(--accent) 40%, transparent); color: var(--accent-strong); padding: 0.4rem 0.8rem; border-radius: 99px; font-size: 0.7rem; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 1rem; }
+        .status-dot { width: 8px; height: 8px; background-color: var(--accent-strong); border-radius: 50%; margin-right: 8px; box-shadow: 0 0 5px var(--accent-strong); animation: pulse-green 2s infinite; }
         .tenure-name { font-size: 2.5rem; font-weight: 700; margin-bottom: 0.2rem; background: linear-gradient(to right, #60a5fa, #a78bfa); -webkit-background-clip: text; -webkit-text-fill-color: transparent; letter-spacing: -1px; }
-        .tenure-title { font-size: 0.8rem; color: #94a3b8; letter-spacing: 2px; text-transform: uppercase; }
+        .tenure-title { font-size: 0.8rem; color: var(--text-dim); letter-spacing: 2px; text-transform: uppercase; }
         .tenure-grid { display: flex; flex-direction: column; gap: 15px; flex: 1; justify-content: center; }
         .tenure-row { display: flex; justify-content: center; gap: 15px; flex-wrap: wrap; }
-        .stat-card { background: rgba(0,0,0,0.3); padding: 1.2rem; border-radius: 12px; min-width: 110px; text-align: center; border: 1px solid rgba(255,255,255,0.05); }
-        .stat-num { font-family: 'JetBrains Mono', monospace; font-size: 2.2rem; font-weight: 700; display: block; color: #fff; line-height: 1.1; }
-        .stat-num.secondary { color: #cbd5e1; }
+        .stat-card { background: var(--glass); padding: 1.2rem; border-radius: 12px; min-width: 110px; text-align: center; border: 1px solid var(--border); box-shadow: 0 10px 24px var(--shadow); }
+        .stat-num { font-family: 'JetBrains Mono', monospace; font-size: 2.2rem; font-weight: 700; display: block; color: var(--text-primary); line-height: 1.1; }
+        .stat-num.secondary { color: var(--text-primary); }
         .stat-label { font-size: 0.65rem; text-transform: uppercase; color: var(--text-dim); letter-spacing: 2px; margin-top: 5px; display: block; }
-        .uptime-terminal { background: rgba(0, 0, 0, 0.5); border: 1px solid rgba(255, 255, 255, 0.05); border-radius: 12px; padding: 1rem; margin-top: auto; text-align: center; }
-        .term-labels { display: flex; justify-content: space-between; font-size: 0.6rem; color: #475569; text-transform: uppercase; margin-bottom: 0.5rem; }
+        .uptime-terminal { background: var(--glass); border: 1px solid var(--border); border-radius: 12px; padding: 1rem; margin-top: auto; text-align: center; box-shadow: 0 10px 24px var(--shadow); }
+        .term-labels { display: flex; justify-content: space-between; font-size: 0.6rem; color: var(--text-dim); text-transform: uppercase; margin-bottom: 0.5rem; }
         .term-display { font-family: 'JetBrains Mono', monospace; font-size: 1.2rem; color: var(--accent); text-shadow: 0 0 10px rgba(16, 185, 129, 0.3); }
 
         /* --- 8. Tools Styles --- */
         .tools-tabs { display: flex; gap: 10px; margin-bottom: 20px; border-bottom: 1px solid var(--border); padding-bottom: 10px; flex-shrink: 0; width: 100%; align-items: center; }
+        .theme-control { display: inline-flex; flex: 0 0 auto; gap: 4px; height: 50px; padding: 4px; border: 1px solid var(--border); border-radius: 10px; background: var(--glass); }
+        .theme-option { min-width: 58px; border: 0; border-radius: 7px; background: transparent; color: var(--text-dim); font-size: 0.72rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; cursor: pointer; }
+        .theme-option[aria-pressed="true"] { background: var(--accent); color: var(--accent-contrast); }
         
         .tool-btn { 
             background: var(--glass); border: 1px solid var(--border); color: var(--text-primary); 
@@ -144,8 +192,8 @@
             cursor: pointer; transition: background 0.1s; flex: 1; text-align: center; 
             display: flex; align-items: center; justify-content: center; height: 50px;
         }
-        .tool-btn:active { background: var(--accent); color: #000; }
-        .tool-btn.active-tab { background: var(--accent); color: #000; font-weight: bold; }
+        .tool-btn:active { background: var(--accent); color: var(--accent-contrast); }
+        .tool-btn.active-tab { background: var(--accent); color: var(--accent-contrast); font-weight: bold; }
         
         .mute-btn { 
             background: none; border: 1px solid var(--border); color: var(--text-dim); 
@@ -167,14 +215,14 @@
         
         #note-canvas-container {
             flex: 1; 
-            background: rgba(30, 41, 59, 0.4); 
+            background: var(--canvas-bg);
             border-radius: 12px; border: 2px solid var(--border);
             position: relative; overflow: hidden; cursor: crosshair;
             touch-action: none;
             transition: background-color 0.3s;
         }
         
-        #note-canvas-container.opaque-bg { background: #0f172a; border-color: var(--accent); }
+        #note-canvas-container.opaque-bg { background: var(--canvas-opaque-bg); border-color: var(--accent); }
         
         #note-canvas { display: block; width: 100%; height: 100%; }
 
@@ -191,39 +239,45 @@
         .p-red { background: #ef4444; }
         
         .eraser-btn {
-            background: #334155; color: #94a3b8; border: 1px solid var(--border);
+            background: var(--button-muted); color: var(--text-dim); border: 1px solid var(--border);
             padding: 8px 15px; border-radius: 20px; font-size: 0.8rem; cursor: pointer; font-weight: bold;
         }
-        .eraser-btn.pen-selected { background: var(--accent); color: #000; }
+        .eraser-btn.pen-selected { background: var(--accent); color: var(--accent-contrast); }
 
-        .icon-btn { background: var(--glass); color: white; border: 1px solid var(--border); width: 40px; height: 35px; border-radius: 20px; font-size: 1.2rem; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+        .icon-btn { background: var(--glass); color: var(--text-primary); border: 1px solid var(--border); width: 40px; height: 35px; border-radius: 20px; font-size: 1.2rem; cursor: pointer; display: flex; align-items: center; justify-content: center; }
         .clear-btn { background: #b91c1c; color: white; border: none; padding: 8px 15px; border-radius: 20px; font-size: 0.8rem; cursor: pointer; font-weight: bold; margin-left: auto; }
 
         /* Calculator */
         .calc-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; flex: 1; }
-        .calc-btn { padding: 0; font-size: 1.5rem; background: #262626; border: none; color: white; border-radius: 8px; }
-        .calc-btn.op { background: var(--accent); color: black; }
-        .calc-display { grid-column: span 4; background: #000; color: var(--accent); padding: 20px; text-align: right; font-family: 'JetBrains Mono'; font-size: 2rem; margin-bottom: 10px; border-radius: 8px; }
+        .calc-btn { padding: 0; font-size: 1.5rem; background: var(--button-bg); border: none; color: var(--text-primary); border-radius: 8px; }
+        .calc-btn.op { background: var(--accent); color: var(--accent-contrast); }
+        .calc-display { grid-column: span 4; background: var(--bg-color); color: var(--accent); padding: 20px; text-align: right; font-family: 'JetBrains Mono'; font-size: 2rem; margin-bottom: 10px; border-radius: 8px; }
 
         /* Timer/Stopwatch */
-        .time-tool-display { font-size: 3.5rem; font-family: 'JetBrains Mono'; margin: 1rem 0; text-align: center; color: white; }
+        .time-tool-display { font-size: 3.5rem; font-family: 'JetBrains Mono'; margin: 1rem 0; text-align: center; color: var(--text-primary); }
         .control-row { display: flex; justify-content: center; gap: 15px; margin-top: 20px; }
         .timer-inputs { display: flex; justify-content: center; gap: 10px; align-items: center; margin-bottom: 20px; }
         .timer-input-group { display: flex; flex-direction: column; align-items: center; }
         .timer-input-group label { font-size: 0.7rem; color: var(--text-dim); margin-bottom: 5px; }
-        .timer-input-box { background: #000; border: 1px solid var(--border); color: var(--accent); font-family: 'JetBrains Mono'; font-size: 1.5rem; width: 70px; padding: 10px; text-align: center; border-radius: 8px; }
+        .timer-input-box { background: var(--bg-color); border: 1px solid var(--border); color: var(--accent); font-family: 'JetBrains Mono'; font-size: 1.5rem; width: 70px; padding: 10px; text-align: center; border-radius: 8px; }
 
         /* Modal Overlays */
-        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 100; display: none; justify-content: center; align-items: center; backdrop-filter: blur(5px); }
-        .modal-content-simple { background: #111; padding: 2rem; border-radius: 16px; width: 90%; max-width: 450px; border: 1px solid var(--border); }
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--modal-overlay); z-index: 100; display: none; justify-content: center; align-items: center; backdrop-filter: blur(5px); }
+        .modal-content-simple { background: var(--modal-bg); padding: 2rem; border-radius: 16px; width: 90%; max-width: 450px; border: 1px solid var(--border); }
         .alert-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(185, 28, 28, 0.85); z-index: 200; display: none; justify-content: center; align-items: center; flex-direction: column; backdrop-filter: blur(8px); }
         .alert-text { font-size: 2.5rem; font-weight: 700; color: white; margin-bottom: 2rem; text-transform: uppercase; letter-spacing: 2px; text-align: center; }
         .alert-btn { background: white; color: #b91c1c; border: none; padding: 15px 40px; font-size: 1.2rem; font-weight: bold; border-radius: 50px; cursor: pointer; box-shadow: 0 10px 25px rgba(0,0,0,0.5); }
         .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 5px; text-align: center; }
         .cal-header { color: var(--text-dim); font-size: 0.8rem; margin-bottom: 10px; padding: 5px; }
-        .cal-day { padding: 10px; background: #262626; border-radius: 4px; font-size: 1rem; border: 1px solid transparent; }
-        .cal-weekend { background: #171717; border: 1px solid #334155; color: #64748b; }
-        .cal-today { background: var(--accent); color: black; font-weight: bold; }
+        .cal-day { padding: 10px; background: var(--button-bg); border-radius: 4px; font-size: 1rem; border: 1px solid transparent; }
+        .cal-weekend { background: var(--glass); border: 1px solid var(--border); color: var(--text-dim); }
+        .cal-today { background: var(--accent); color: var(--accent-contrast); font-weight: bold; }
+
+        @media (max-width: 720px) {
+            .tools-tabs { flex-wrap: wrap; }
+            .theme-control { width: 100%; }
+            .theme-option { flex: 1; }
+        }
 
     </style>
 </head>
@@ -263,6 +317,10 @@
             <button class="tool-btn" id="tab-stopwatch" onclick="switchTool('stopwatch'); playSound('click');">Stopwatch</button>
             <button class="tool-btn" id="tab-timer" onclick="switchTool('timer'); playSound('click');">Timer</button>
             <button class="tool-btn" id="tab-notes" onclick="switchTool('notes'); playSound('click');">Notes</button>
+            <div class="theme-control" aria-label="Theme">
+                <button class="theme-option" id="theme-dark" type="button" aria-pressed="true" onclick="setTheme('dark'); playSound('click');">Dark</button>
+                <button class="theme-option" id="theme-light" type="button" aria-pressed="false" onclick="setTheme('light'); playSound('click');">Light</button>
+            </div>
             <button class="mute-btn" id="mute-toggle-btn" onclick="toggleMute(); playSound('click');">🔊</button>
         </div>
 
@@ -370,6 +428,19 @@
                 navigator.serviceWorker.register('./sw.js').catch(() => {});
             });
         }
+
+        const THEME_KEY = 'ac_dashboard_theme';
+        function setTheme(theme) {
+            const nextTheme = theme === 'light' ? 'light' : 'dark';
+            document.documentElement.dataset.theme = nextTheme;
+            const meta = document.getElementById('theme-color-meta');
+            if (meta) meta.content = nextTheme === 'light' ? '#f3f5f7' : '#000000';
+            document.querySelectorAll('.theme-option').forEach((button) => {
+                button.setAttribute('aria-pressed', String(button.id === `theme-${nextTheme}`));
+            });
+            try { localStorage.setItem(THEME_KEY, nextTheme); } catch { /* storage may be unavailable */ }
+        }
+        setTheme(document.documentElement.dataset.theme);
 
         let wakeLock = null;
         async function requestWakeLock() {
