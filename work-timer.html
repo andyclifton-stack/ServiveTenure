@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Career Tenure Counter</title>
+    <style>
+        /* Modern Reset and Base Styles */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background-color: #111827; /* Dark background */
+            color: #f3f4f6;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        /* Container Card */
+        .container {
+            text-align: center;
+            background-color: #1f2937;
+            padding: 3rem;
+            border-radius: 1rem;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+            max-width: 900px;
+            width: 90%;
+        }
+
+        h1 {
+            font-weight: 300;
+            letter-spacing: 1px;
+            margin-bottom: 0.5rem;
+            color: #9ca3af;
+            font-size: 1.2rem;
+            text-transform: uppercase;
+        }
+
+        h2 {
+            font-size: 1.5rem;
+            margin-bottom: 3rem;
+            background: linear-gradient(90deg, #60a5fa, #a78bfa);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        /* Layout for Rows */
+        .row-container {
+            display: flex;
+            flex-direction: column;
+            gap: 2rem; /* Space between the two rows */
+        }
+
+        .counter-row {
+            display: flex;
+            justify-content: center;
+            gap: 1.5rem;
+            flex-wrap: wrap;
+        }
+
+        .time-card {
+            background-color: #374151;
+            padding: 1.5rem;
+            border-radius: 0.5rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-width: 110px;
+            transition: transform 0.2s;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .time-card:hover {
+            transform: translateY(-5px);
+            background-color: #4b5563;
+        }
+
+        /* Styling Specifics */
+        .primary-row .number {
+            font-size: 3rem;
+            color: #60a5fa; /* Light Blue highlight */
+        }
+
+        .secondary-row .number {
+            font-size: 2.2rem;
+            color: #ffffff;
+        }
+
+        .number {
+            font-weight: 700;
+            font-variant-numeric: tabular-nums;
+            line-height: 1;
+        }
+
+        .label {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: #9ca3af;
+            margin-top: 0.75rem;
+        }
+
+        /* Third Row - Total Uptime */
+        .total-uptime-container {
+            margin-top: 3rem;
+            padding-top: 1.5rem;
+            border-top: 1px solid #374151;
+        }
+
+        .uptime-label {
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            color: #6b7280;
+            margin-bottom: 0.5rem;
+            letter-spacing: 1px;
+        }
+
+        .uptime-clock {
+            font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+            font-size: 1.5rem;
+            color: #10b981; /* Terminal Green */
+            font-weight: 600;
+            letter-spacing: 2px;
+        }
+
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>Claremont School Tenure</h1>
+        <h2>Since 24th April 2005, 08:00</h2>
+
+        <div class="row-container">
+            
+            <div class="counter-row primary-row">
+                <div class="time-card">
+                    <span class="number" id="years">0</span>
+                    <span class="label">Years</span>
+                </div>
+                <div class="time-card">
+                    <span class="number" id="weeks">0</span>
+                    <span class="label">Weeks</span>
+                </div>
+                <div class="time-card">
+                    <span class="number" id="days">0</span>
+                    <span class="label">Days</span>
+                </div>
+            </div>
+
+            <div class="counter-row secondary-row">
+                <div class="time-card">
+                    <span class="number" id="hours">0</span>
+                    <span class="label">Hours</span>
+                </div>
+                <div class="time-card">
+                    <span class="number" id="minutes">0</span>
+                    <span class="label">Minutes</span>
+                </div>
+                <div class="time-card">
+                    <span class="number" id="seconds">0</span>
+                    <span class="label">Seconds</span>
+                </div>
+            </div>
+
+        </div>
+
+        <div class="total-uptime-container">
+            <div class="uptime-label">Total Uptime Since Start</div>
+            <div class="uptime-clock" id="total-uptime">0:00:00</div>
+        </div>
+    </div>
+
+    <script>
+        function updateCounter() {
+            const startDate = new Date('2005-04-24T08:00:00');
+            const now = new Date();
+            
+            // --- Part A: Breakdown Calculation ---
+            
+            // 1. Calculate Years (Calendar accurate)
+            let years = now.getFullYear() - startDate.getFullYear();
+            const m = now.getMonth() - startDate.getMonth();
+            if (m < 0 || (m === 0 && now.getDate() < startDate.getDate())) {
+                years--;
+            }
+
+            // 2. Remainder Calculation
+            const cursorDate = new Date(startDate);
+            cursorDate.setFullYear(startDate.getFullYear() + years);
+
+            let diff = now - cursorDate;
+
+            // Math Constants
+            const msPerSecond = 1000;
+            const msPerMinute = msPerSecond * 60;
+            const msPerHour = msPerMinute * 60;
+            const msPerDay = msPerHour * 24;
+            const msPerWeek = msPerDay * 7;
+
+            // Calculate Weeks
+            const weeks = Math.floor(diff / msPerWeek);
+            diff -= weeks * msPerWeek;
+
+            // Calculate Days
+            const days = Math.floor(diff / msPerDay);
+            diff -= days * msPerDay;
+
+            // Calculate Hours
+            const hours = Math.floor(diff / msPerHour);
+            diff -= hours * msPerHour;
+
+            // Calculate Minutes
+            const minutes = Math.floor(diff / msPerMinute);
+            diff -= minutes * msPerMinute;
+
+            // Calculate Seconds
+            const seconds = Math.floor(diff / msPerSecond);
+
+            // Update Breakdown DOM
+            document.getElementById('years').textContent = years;
+            document.getElementById('weeks').textContent = weeks;
+            document.getElementById('days').textContent = days;
+            document.getElementById('hours').textContent = hours;
+            document.getElementById('minutes').textContent = minutes;
+            document.getElementById('seconds').textContent = seconds;
+
+
+            // --- Part B: Total Uptime Calculation ---
+            
+            // Re-calculate total difference from scratch
+            let totalDiff = now - startDate;
+            
+            let totalSeconds = Math.floor(totalDiff / 1000);
+            let totalMinutes = Math.floor(totalSeconds / 60);
+            let totalHours = Math.floor(totalMinutes / 60);
+
+            // Get remainders for the clock display
+            let clockSeconds = (totalSeconds % 60).toString().padStart(2, '0');
+            let clockMinutes = (totalMinutes % 60).toString().padStart(2, '0');
+            // We do NOT mod hours, because we want the massive total number
+            let clockHours = totalHours.toLocaleString(); // Adds commas e.g. 170,000
+
+            document.getElementById('total-uptime').textContent = `${clockHours}:${clockMinutes}:${clockSeconds}`;
+        }
+
+        updateCounter();
+        setInterval(updateCounter, 1000);
+    </script>
+</body>
+</html>

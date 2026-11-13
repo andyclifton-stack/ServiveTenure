@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AC System Status</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;700&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+    <style>
+        /* --- 1. Animation Definitions --- */
+        @keyframes gradient-animation {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        @keyframes float {
+            0% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+            100% { transform: translateY(0px); }
+        }
+
+        @keyframes pulse-green {
+            0% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); }
+            70% { box-shadow: 0 0 0 10px rgba(16, 185, 129, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+        }
+
+        /* --- 2. Base Styles --- */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            /* Animated Deep Space Background */
+            background: linear-gradient(-45deg, #0f172a, #1e1b4b, #115e59, #0f172a);
+            background-size: 400% 400%;
+            animation: gradient-animation 15s ease infinite;
+            color: #ffffff;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            overflow: hidden; /* Prevents scrollbars */
+        }
+
+        /* --- 3. Main Glass Container --- */
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 24px;
+            padding: 4rem;
+            width: 90%;
+            max-width: 1000px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            text-align: center;
+            position: relative;
+        }
+
+        /* Header Section */
+        .header {
+            margin-bottom: 3rem;
+            position: relative;
+        }
+
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            background: rgba(16, 185, 129, 0.2);
+            border: 1px solid rgba(16, 185, 129, 0.4);
+            color: #34d399;
+            padding: 0.5rem 1rem;
+            border-radius: 9999px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 1.5rem;
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            background-color: #34d399;
+            border-radius: 50%;
+            margin-right: 8px;
+            animation: pulse-green 2s infinite;
+        }
+
+        h1 {
+            font-size: 3rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            background: linear-gradient(to right, #60a5fa, #a78bfa);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            letter-spacing: -1px;
+        }
+
+        h2 {
+            font-size: 1rem;
+            color: #94a3b8;
+            font-weight: 400;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+
+        /* --- 4. Counter Grid --- */
+        .grid-container {
+            display: flex;
+            flex-direction: column;
+            gap: 2.5rem;
+        }
+
+        /* Row Styles */
+        .row {
+            display: flex;
+            justify-content: center;
+            gap: 2rem;
+            flex-wrap: wrap;
+        }
+
+        .stat-card {
+            background: rgba(0, 0, 0, 0.2);
+            padding: 1.5rem 2rem;
+            border-radius: 16px;
+            min-width: 140px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+            background: rgba(255, 255, 255, 0.08);
+            border-color: rgba(96, 165, 250, 0.3);
+            box-shadow: 0 10px 30px -10px rgba(96, 165, 250, 0.2);
+        }
+
+        /* The Numbers */
+        .number {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 3.5rem;
+            font-weight: 700;
+            display: block;
+            line-height: 1;
+            margin-bottom: 0.5rem;
+            text-shadow: 0 0 20px rgba(96, 165, 250, 0.3);
+        }
+
+        .primary-text { color: #ffffff; }
+        .secondary-text { color: #e2e8f0; font-size: 2.5rem; }
+
+        /* The Labels */
+        .label {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            color: #64748b;
+            font-weight: 600;
+        }
+
+        /* --- 5. Terminal Footer --- */
+        .terminal-container {
+            margin-top: 4rem;
+            background: rgba(0, 0, 0, 0.4);
+            border-radius: 12px;
+            padding: 1.5rem;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            display: inline-block;
+            min-width: 60%;
+        }
+
+        .terminal-header {
+            font-size: 0.75rem;
+            color: #475569;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 0.5rem;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .terminal-text {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 1.5rem;
+            color: #10b981;
+            text-shadow: 0 0 10px rgba(16, 185, 129, 0.4);
+        }
+
+    </style>
+</head>
+<body>
+
+    <div class="glass-panel">
+        
+        <div class="header">
+            <div class="status-badge">
+                <div class="status-dot"></div>
+                System Active
+            </div>
+            <h1>Andy Clifton</h1>
+            <h2>Head of IT  &bull;  Service Tenure</h2>
+        </div>
+
+        <div class="grid-container">
+            
+            <div class="row">
+                <div class="stat-card">
+                    <span class="number primary-text" id="years">0</span>
+                    <span class="label">Years</span>
+                </div>
+                <div class="stat-card">
+                    <span class="number primary-text" id="weeks">0</span>
+                    <span class="label">Weeks</span>
+                </div>
+                <div class="stat-card">
+                    <span class="number primary-text" id="days">0</span>
+                    <span class="label">Days</span>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="stat-card">
+                    <span class="number secondary-text" id="hours">0</span>
+                    <span class="label">Hours</span>
+                </div>
+                <div class="stat-card">
+                    <span class="number secondary-text" id="minutes">0</span>
+                    <span class="label">Mins</span>
+                </div>
+                <div class="stat-card">
+                    <span class="number secondary-text" id="seconds">0</span>
+                    <span class="label">Secs</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="terminal-container">
+            <div class="terminal-header">
+                <span>Total Uptime Log</span>
+                <span>ID: CLAREMONT-05</span>
+            </div>
+            <div class="terminal-text" id="total-uptime">INITIALIZING...</div>
+        </div>
+
+    </div>
+
+    <script>
+        function updateCounter() {
+            const startDate = new Date('2005-04-24T08:00:00');
+            const now = new Date();
+            
+            // --- Part A: Breakdown Calculation ---
+            let years = now.getFullYear() - startDate.getFullYear();
+            const m = now.getMonth() - startDate.getMonth();
+            if (m < 0 || (m === 0 && now.getDate() < startDate.getDate())) {
+                years--;
+            }
+
+            const cursorDate = new Date(startDate);
+            cursorDate.setFullYear(startDate.getFullYear() + years);
+
+            let diff = now - cursorDate;
+
+            const msPerSecond = 1000;
+            const msPerMinute = msPerSecond * 60;
+            const msPerHour = msPerMinute * 60;
+            const msPerDay = msPerHour * 24;
+            const msPerWeek = msPerDay * 7;
+
+            const weeks = Math.floor(diff / msPerWeek);
+            diff -= weeks * msPerWeek;
+
+            const days = Math.floor(diff / msPerDay);
+            diff -= days * msPerDay;
+
+            const hours = Math.floor(diff / msPerHour);
+            diff -= hours * msPerHour;
+
+            const minutes = Math.floor(diff / msPerMinute);
+            diff -= minutes * msPerMinute;
+
+            const seconds = Math.floor(diff / msPerSecond);
+
+            document.getElementById('years').textContent = years;
+            document.getElementById('weeks').textContent = weeks;
+            document.getElementById('days').textContent = days;
+            document.getElementById('hours').textContent = hours;
+            document.getElementById('minutes').textContent = minutes;
+            document.getElementById('seconds').textContent = seconds;
+
+
+            // --- Part B: Total Uptime Calculation ---
+            let totalDiff = now - startDate;
+            let totalSeconds = Math.floor(totalDiff / 1000);
+            let totalMinutes = Math.floor(totalSeconds / 60);
+            let totalHours = Math.floor(totalMinutes / 60);
+
+            let clockSeconds = (totalSeconds % 60).toString().padStart(2, '0');
+            let clockMinutes = (totalMinutes % 60).toString().padStart(2, '0');
+            let clockHours = totalHours.toLocaleString();
+
+            // Adding a little blinking cursor effect for the terminal feel
+            document.getElementById('total-uptime').innerHTML = 
+                `${clockHours}<span style="color:#6b7280">:</span>${clockMinutes}<span style="color:#6b7280">:</span>${clockSeconds}`;
+        }
+
+        updateCounter();
+        setInterval(updateCounter, 1000);
+    </script>
+</body>
+</html>
